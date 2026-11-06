@@ -1,0 +1,18 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}",
+    "${workspaceFolder}/.venv/lib/python3.14/site-packages"
+  ],
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.diagnosticMode": "workspace",
+  "cSpell.words": [
+    "pagesizes",
+    "reportlab",
+    "Rahiq",
+    "whitesmoke",
+    "late_days",
+    "payroll",
+    "payouts"
+  ]
+}

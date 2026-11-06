@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}الساعات الإضافية | Rahiq Pharmacy{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">المالية</p>
+        <h2>إدارة الساعات الإضافية</h2>
+      </div>
+    </div>
+
+    <div class="panel mt-4">
+      <div class="section-header">
+        <h3>إضافة طلب إضافي جديد</h3>
+      </div>
+      <form method="post" action="{{ url_for('overtime') }}" class="row g-3 align-items-end">
+        <input type="hidden" name="action" value="create_request">
+        <div class="col-md-3">
+          <label class="form-label">الموظف</label>
+          <select class="custom-input" name="employee_id" required>
+            <option value="">اختر موظف</option>
+            {% for employee in employees %}
+            <option value="{{ employee.id }}">{{ employee.full_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2"><label class="form-label">تاريخ العمل</label><input type="date" class="custom-input" name="work_date" required></div>
+        <div class="col-md-2"><label class="form-label">بداية الوقت</label><input type="time" class="custom-input" name="start_time" required></div>
+        <div class="col-md-2"><label class="form-label">نهاية الوقت</label><input type="time" class="custom-input" name="end_time" required></div>
+        <div class="col-md-2"><label class="form-label">الشهر</label><input type="month" class="custom-input" name="payroll_month"></div>
+        <div class="col-md-12"><label class="form-label">السبب</label><textarea class="custom-input" name="reason"></textarea></div>
+        <div class="col-md-12"><button type="submit" class="main-btn">إرسال الطلب</button></div>
+      </form>
+    </div>
+
+    <div class="panel mt-4">
+      <div class="section-header"><h3>طلبات الساعات الإضافية</h3></div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>الموظف</th><th>التاريخ</th><th>الوقت</th><th>الساعات</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody>
+            {% for item in requests %}
+            <tr>
+              <td>{{ item.full_name }}</td>
+              <td>{{ item.work_date }}</td>
+              <td>{{ item.start_time }} - {{ item.end_time }}</td>
+              <td>{{ item.total_hours }}</td>
+              <td><span class="status-badge status-inactive">{{ item.status }}</span></td>
+              <td>
+                {% if item.status == 'pending' %}
+                <div class="action-links">
+                  <form method="post" action="{{ url_for('overtime') }}">
+                    <input type="hidden" name="action" value="approve">
+                    <input type="hidden" name="record_id" value="{{ item.id }}">
+                    <button type="submit" class="small-btn">اعتماد</button>
+                  </form>
+                  <form method="post" action="{{ url_for('overtime') }}">
+                    <input type="hidden" name="action" value="reject">
+                    <input type="hidden" name="record_id" value="{{ item.id }}">
+                    <button type="submit" class="small-btn secondary-btn">رفض</button>
+                  </form>
+                </div>
+                {% elif item.status == 'approved' %}
+                <span class="text-success">مستوفى</span>
+                {% elif item.status == 'rejected' %}
+                <span class="text-danger">مرفوض</span>
+                {% else %}
+                <span class="text-muted">{{ item.status }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted">لا توجد طلبات حالياً.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

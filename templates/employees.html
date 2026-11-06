@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}الموظفين | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">إدارة الموارد</p>
+        <h2>إدارة الموظفين</h2>
+      </div>
+      <div class="nav-actions">
+        <a href="{{ url_for('dashboard') }}" class="main-btn"><i class="fa-solid fa-arrow-right-to-bracket"></i> العودة للوحة التحكم</a>
+      </div>
+    </div>
+
+    <div class="employee-overview-grid">
+      <div class="employee-stat-card purple">
+        <div class="employee-stat-icon"><i class="fa-solid fa-user-group"></i></div>
+        <div>
+          <small>إجمالي الموظفين</small>
+          <strong>{{ employees|length }}</strong>
+        </div>
+      </div>
+      <div class="employee-stat-card blue">
+        <div class="employee-stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div>
+          <small>موظفين منتظمين</small>
+          <strong>{{ employees | selectattr('status', 'equalto', 'active') | list | length }}</strong>
+        </div>
+      </div>
+      <div class="employee-stat-card gold">
+        <div class="employee-stat-icon"><i class="fa-solid fa-clock"></i></div>
+        <div>
+          <small>قيد المراجعة</small>
+          <strong>{{ employees | selectattr('status', 'equalto', 'on_leave') | list | length }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel luxury-panel">
+      <div class="section-header space-between">
+        <h3><i class="fa-solid fa-user-tie"></i> قائمة الموظفين</h3>
+        <form method="get" action="{{ url_for('employees') }}" class="employee-search-form modern-search-form">
+          <div class="search-field">
+            <span><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" class="custom-input" name="q" value="{{ search or '' }}" placeholder="بحث باسم الموظف أو الوظيفة">
+          </div>
+          <select class="custom-input" name="status">
+            <option value="all" {% if status == 'all' %}selected{% endif %}>كل الحالات</option>
+            <option value="active" {% if status == 'active' %}selected{% endif %}>مداوم</option>
+            <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>متوقف</option>
+            <option value="on_leave" {% if status == 'on_leave' %}selected{% endif %}>في إجازة</option>
+          </select>
+          <button type="submit" class="small-btn"><i class="fa-solid fa-filter"></i> بحث</button>
+        </form>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>اسم الموظف</th>
+              <th>المسمى</th>
+              <th>الهاتف</th>
+              <th>الحالة</th>
+              <th>آخر حضور</th>
+              <th>نوع التوظيف</th>
+              <th>الراتب الأساسي</th>
+              <th>ساعات العمل</th>
+              <th>تاريخ التعيين</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if employees %}
+              {% for employee in employees %}
+              <tr>
+                <td>{{ employee.full_name }}</td>
+                <td>{{ employee.role }}</td>
+                <td>{{ employee.phone or '—' }}</td>
+                <td>
+                  {% if employee.status == 'active' %}
+                    <span class="status-badge status-active">مداوم</span>
+                  {% elif employee.status == 'inactive' %}
+                    <span class="status-badge status-inactive">متوقف</span>
+                  {% else %}
+                    <span class="status-badge status-leave">في إجازة</span>
+                  {% endif %}
+                </td>
+                <td>{{ employee.last_attendance_date or '—' }}</td>
+                <td>
+                  {% if employee.employment_type == 'full_time' %}دوام كامل
+                  {% elif employee.employment_type == 'part_time' %}دوام جزئي
+                  {% elif employee.employment_type == 'contract' %}عقد
+                  {% else %}غير محدد{% endif %}
+                </td>
+                <td>{{ '%.2f'|format(employee.base_salary) }} د.ل</td>
+                <td>{{ employee.work_hours }} ساعة</td>
+                <td>{{ employee.hire_date }}</td>
+                <td>
+                  <a href="{{ url_for('reports', employee_id=employee.id, month=selected_month) }}" class="small-btn light-btn">تقرير</a>
+                  <a href="{{ url_for('employee_history', employee_id=employee.id) }}" class="small-btn light-btn">السجل</a>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="9" class="text-center text-muted">لا توجد موظفين مسجلين بعد أو لا يوجد بحث مطابق.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

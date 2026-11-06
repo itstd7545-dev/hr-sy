@@ -1,0 +1,704 @@
+{% extends 'base.html' %}
+
+{% block title %}لوحة التحكم | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<script type="application/json" id="salaryChartData">{{ {"labels": report | map(attribute='full_name') | list, "values": report | map(attribute='total_salary') | list} | tojson }}</script>
+<script type="application/json" id="attendanceChartData">{{ {"labels": ['حضور', 'غياب', 'تأخر'], "values": [summary.present, summary.absent, summary.late]} | tojson }}</script>
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">لوحة التحكم</p>
+        <h2>لوحة تحكم HR - رحيق</h2>
+      </div>
+      <div class="nav-actions">
+        <form method="get" action="{{ url_for('dashboard') }}" class="toolbar-form">
+          <label class="toolbar-label">الشهر</label>
+          <input type="month" class="custom-input toolbar-input" name="month" value="{{ selected_month }}">
+          <button type="submit" class="main-btn">تصفية</button>
+        </form>
+        <form method="post" action="{{ url_for('report_pdf') }}">
+          <input type="hidden" name="month" value="{{ selected_month }}">
+          <button type="submit" class="small-btn">تصدير PDF</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="dashboard-hero">
+      <div class="hero-copy">
+        <span class="hero-label">مؤشرات التشغيل</span>
+        <h3>مستوى الأداء اليومي للموارد البشرية</h3>
+        <p>مراقبة الحضور، الرواتب، الإجازات، والتزام الموظفين في لوحة متكاملة ومصممة بأسلوب Executive Premium.</p>
+      </div>
+      <div class="hero-badges">
+        <div class="hero-badge success"><span class="hero-dot"></span> 96% حضور</div>
+        <div class="hero-badge neutral"><span class="hero-dot"></span> 12 موظف نشط</div>
+        <div class="hero-badge warm"><span class="hero-dot"></span> 4 تنبيهات</div>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-card green">
+        <div class="stat-top">
+          <span class="summary-icon"><i class="fa-solid fa-users"></i></span>
+          <span class="label">عدد الموظفين</span>
+        </div>
+        <div class="value">{{ summary.employees }}</div>
+      </div>
+      <div class="summary-card green">
+        <div class="stat-top">
+          <span class="summary-icon"><i class="fa-solid fa-user-check"></i></span>
+          <span class="label">الحضور</span>
+        </div>
+        <div class="value">{{ summary.present }}</div>
+      </div>
+      <div class="summary-card red">
+        <div class="stat-top">
+          <span class="summary-icon"><i class="fa-solid fa-user-slash"></i></span>
+          <span class="label">الغياب</span>
+        </div>
+        <div class="value">{{ summary.absent }}</div>
+      </div>
+      <div class="summary-card purple">
+        <div class="stat-top">
+          <span class="summary-icon"><i class="fa-solid fa-sack-dollar"></i></span>
+          <span class="label">المجموع الشهري</span>
+        </div>
+        <div class="value">{{ '%.2f'|format(summary.payroll + summary.adjustments - summary.discounts) }} د.ل</div>
+      </div>
+    </div>
+
+    <div class="mini-summary-row">
+      <div class="mini-card premium-mini">
+        <div class="mini-meta"><span class="mini-icon"><i class="fa-solid fa-clock"></i></span><span>التأخر</span></div>
+        <strong>{{ summary.late }}</strong>
+      </div>
+      <div class="mini-card premium-mini">
+        <div class="mini-meta"><span class="mini-icon"><i class="fa-solid fa-wallet"></i></span><span>إجمالي الرواتب</span></div>
+        <strong>{{ '%.2f'|format(summary.payroll) }} د.ل</strong>
+      </div>
+      <div class="mini-card premium-mini">
+        <div class="mini-meta"><span class="mini-icon"><i class="fa-solid fa-chart-line"></i></span><span>الزيادات</span></div>
+        <strong>{{ '%.2f'|format(summary.adjustments) }} د.ل</strong>
+      </div>
+      <div class="mini-card premium-mini">
+        <div class="mini-meta"><span class="mini-icon"><i class="fa-solid fa-receipt"></i></span><span>الخصومات</span></div>
+        <strong>{{ '%.2f'|format(summary.discounts) }} د.ل</strong>
+      </div>
+      <div class="mini-card premium-mini">
+        <div class="mini-meta"><span class="mini-icon"><i class="fa-solid fa-umbrella-beach"></i></span><span>أيام الإجازة</span></div>
+        <strong>{{ summary.leave_days }}</strong>
+      </div>
+    </div>
+
+    <div class="alert-stack">
+      {% if alerts %}
+        {% for alert in alerts[:4] %}
+          <div class="alert-card alert-{{ alert.type }}">
+            <span class="alert-tag">{{ alert.title }}</span>
+            <p>{{ alert.message }}</p>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="alert-card alert-safe">
+          <span class="alert-tag">حالة جيدة</span>
+          <p>لا توجد تنبيهات في هذا الشهر، والعمل يتبع الخطة المقررة.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="chart-grid mt-4">
+      <div class="panel chart-panel luxury-panel">
+        <div class="section-header">
+          <h3>📊 مخطط الحضور الشهري</h3>
+        </div>
+        <canvas id="attendanceChart"></canvas>
+      </div>
+      <div class="panel chart-panel luxury-panel">
+        <div class="section-header">
+          <h3>📈 مخطط الرواتب</h3>
+        </div>
+        <canvas id="salaryChart"></canvas>
+      </div>
+    </div>
+
+    <div class="panel mt-4">
+      <div class="section-header">
+        <h3>الموظفون الأكثر التزاماً</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الوظيفة</th>
+              <th>عدد التأخيرات</th>
+              <th>آخر حضور</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if punctual_employees %}
+              {% for employee in punctual_employees %}
+              <tr>
+                <td>{{ employee.full_name }}</td>
+                <td>{{ employee.role }}</td>
+                <td>{{ employee.late_days }}</td>
+                <td>{{ employee.last_attendance_date or '—' }}</td>
+                <td>
+                  {% if employee.status == 'active' %}
+                    <span class="status-badge status-active">مداوم</span>
+                  {% elif employee.status == 'inactive' %}
+                    <span class="status-badge status-inactive">متوقف</span>
+                  {% else %}
+                    <span class="status-badge status-leave">في إجازة</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted">لا توجد بيانات للتزام الموظفين.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-layout">
+      <div>
+        <div class="panel">
+          <h3>إضافة / تعديل موظف</h3>
+          <form method="post" id="employeeForm">
+            <input type="hidden" name="action" id="employeeAction" value="add_employee">
+            <input type="hidden" name="employee_id" id="employeeId" value="">
+
+            <div class="form-grid">
+              <div>
+                <label class="form-label">اسم الموظف</label>
+                <input type="text" class="custom-input" name="full_name" placeholder="اسم الموظف" required>
+              </div>
+              <div>
+                <label class="form-label">المسمى الوظيفي</label>
+                <input type="text" class="custom-input" name="role" placeholder="مثال: صيدلي / موظف مبيعات" required>
+              </div>
+              <div>
+                <label class="form-label">رقم الهاتف</label>
+                <input type="text" class="custom-input" name="phone" placeholder="05XXXXXXXX">
+              </div>
+              <div>
+                <label class="form-label">الراتب الأساسي</label>
+                <input type="number" step="0.01" class="custom-input" name="base_salary" value="0">
+              </div>
+              <div>
+                <label class="form-label">ساعات العمل</label>
+                <input type="number" step="0.5" class="custom-input" name="work_hours" value="8">
+              </div>
+              <div>
+                <label class="form-label">تاريخ التعيين</label>
+                <input type="date" class="custom-input" name="hire_date" value="{{ selected_month[:4] }}-01">
+              </div>
+              <div>
+                <label class="form-label">وقت الحضور</label>
+                <input type="time" class="custom-input" name="check_in_time" value="08:00">
+              </div>
+              <div>
+                <label class="form-label">وقت الانصراف</label>
+                <input type="time" class="custom-input" name="check_out_time" value="17:00">
+              </div>
+              <div>
+                <label class="form-label">حالة الموظف</label>
+                <select class="custom-input" name="status">
+                  <option value="active">مداوم</option>
+                  <option value="inactive">متوقف</option>
+                  <option value="on_leave">في إجازة</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">نوع التوظيف</label>
+                <select class="custom-input" name="employment_type">
+                  <option value="full_time">دوام كامل</option>
+                  <option value="part_time">دوام جزئي</option>
+                  <option value="contract">عقد</option>
+                </select>
+              </div>
+              <div class="full">
+                <label class="form-label">ملاحظات</label>
+                <textarea class="custom-input custom-textarea" name="notes" rows="3" placeholder="ملاحظات إضافية عن الموظف"></textarea>
+              </div>
+            </div>
+
+            <div class="action-row mt-3">
+              <button type="submit" class="main-btn" id="employeeSubmit">إضافة موظف</button>
+              <button type="button" class="small-btn danger" id="cancelEdit">إلغاء التعديل</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h3>قائمة الموظفين</h3>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>الاسم</th>
+                  <th>الوظيفة</th>
+                  <th>الحالة</th>
+                  <th>آخر حضور</th>
+                  <th>تأخير هذا الشهر</th>
+                  <th>الراتب</th>
+                  <th>الساعات</th>
+                  <th>الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if employees %}
+                  {% for employee in employees %}
+                  <tr>
+                    <td>{{ employee.full_name }}</td>
+                    <td>{{ employee.role }}</td>
+                    <td>
+                      {% if employee.status == 'active' %}
+                        <span class="status-badge status-active">مداوم</span>
+                      {% elif employee.status == 'inactive' %}
+                        <span class="status-badge status-inactive">متوقف</span>
+                      {% else %}
+                        <span class="status-badge status-leave">في إجازة</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ employee.last_attendance_date }}<br><small>{{ employee.last_attendance_status }}</small></td>
+                    <td>{{ employee.late_days }} يوم</td>
+                    <td>{{ '%.2f'|format(employee.base_salary) }} د.ل</td>
+                    <td>{{ employee.work_hours }} س</td>
+                    <td>
+                      <div class="action-row">
+                        <button
+                          type="button"
+                          class="small-btn edit-employee"
+                          data-id="{{ employee.id }}"
+                          data-full_name="{{ employee.full_name }}"
+                          data-role="{{ employee.role }}"
+                          data-phone="{{ employee.phone or '' }}"
+                          data-base_salary="{{ employee.base_salary }}"
+                          data-work_hours="{{ employee.work_hours }}"
+                          data-hire_date="{{ employee.hire_date }}"
+                          data-status="{{ employee.status or 'active' }}"
+                          data-employment_type="{{ employee.employment_type or 'full_time' }}"
+                          data-notes="{{ employee.notes or '' }}"
+                          data-check_in_time="{{ employee.check_in_time or '08:00' }}"
+                          data-check_out_time="{{ employee.check_out_time or '17:00' }}"
+                        >تعديل</button>
+                        <a href="{{ url_for('employee_history', employee_id=employee.id) }}" class="small-btn light-btn">السجل</a>
+                        <form method="post" action="{{ url_for('dashboard') }}" style="display:inline; margin:0;">
+                          <input type="hidden" name="action" value="delete_employee">
+                          <input type="hidden" name="employee_id" value="{{ employee.id }}">
+                          <button type="submit" class="small-btn danger" onclick="return confirm('هل تريد حذف هذا الموظف؟')">حذف</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="6" class="text-center text-muted">لا يوجد موظفون حتى الآن.</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h3>تسجيل الحضور</h3>
+          <form method="post" action="{{ url_for('dashboard') }}">
+            <input type="hidden" name="action" value="attendance">
+            <div class="form-grid">
+              <div class="full">
+                <label class="form-label">الموظف</label>
+                <select class="custom-input" name="employee_id" required>
+                  <option value="">اختر الموظف</option>
+                  {% for employee in employees %}
+                    <option value="{{ employee.id }}">{{ employee.full_name }} - {{ employee.role }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label">التاريخ</label>
+                <input type="date" class="custom-input" name="date" value="{{ selected_month }}-01">
+              </div>
+              <div>
+                <label class="form-label">الحالة</label>
+                <select class="custom-input" name="status" required>
+                  <option value="">اختر الحالة</option>
+                  <option value="present">حاضر</option>
+                  <option value="absent">غائب</option>
+                  <option value="late">متأخر</option>
+                  <option value="left">منصرف</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">وقت الحضور</label>
+                <input type="time" class="custom-input" name="check_in_time" value="08:00">
+              </div>
+              <div>
+                <label class="form-label">وقت الانصراف</label>
+                <input type="time" class="custom-input" name="check_out_time" value="17:00">
+              </div>
+              <div class="full">
+                <label class="form-label">ملاحظات</label>
+                <textarea class="custom-input custom-textarea" name="notes" rows="3" placeholder="ملاحظات حول الحضور أو التأخير"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="main-btn mt-3">حفظ الحضور</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h3>إضافة إجازة</h3>
+          <form method="post" action="{{ url_for('dashboard') }}">
+            <input type="hidden" name="action" value="leave">
+            <div class="form-grid">
+              <div class="full">
+                <label class="form-label">الموظف</label>
+                <select class="custom-input" name="employee_id" required>
+                  <option value="">اختر الموظف</option>
+                  {% for employee in employees %}
+                    <option value="{{ employee.id }}">{{ employee.full_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label">تاريخ البداية</label>
+                <input type="date" class="custom-input" name="start_date" required>
+              </div>
+              <div>
+                <label class="form-label">تاريخ النهاية</label>
+                <input type="date" class="custom-input" name="end_date" required>
+              </div>
+              <div class="full">
+                <label class="form-label">سبب الإجازة</label>
+                <textarea class="custom-input custom-textarea" name="reason" rows="3" placeholder="سبب الإجازة"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="main-btn mt-3">إضافة إجازة</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h3>زيادة الراتب / مكافأة</h3>
+          <form method="post" action="{{ url_for('dashboard') }}">
+            <input type="hidden" name="action" value="adjustment">
+            <div class="checkbox-list">
+              {% for employee in employees %}
+              <label class="checkbox-row">
+                <input type="checkbox" name="employee_ids" value="{{ employee.id }}">
+                <span>{{ employee.full_name }} - {{ employee.role }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            <div class="form-grid mt-3">
+              <div>
+                <label class="form-label">نوع التعديل</label>
+                <select class="custom-input" name="adjustment_type" required>
+                  <option value="">اختر النوع</option>
+                  <option value="bonus">مكافأة</option>
+                  <option value="raise">زيادة مرتب</option>
+                  <option value="allowance">بدل</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">المبلغ</label>
+                <input type="number" step="0.01" class="custom-input" name="amount" value="0" required>
+              </div>
+              <div class="full">
+                <label class="form-label">السبب</label>
+                <textarea class="custom-input custom-textarea" name="reason" rows="3" placeholder="سبب الزيادة أو المكافأة"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="main-btn mt-3">تطبيق على الموظفين المحددين</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h3>خصم من راتب الموظف</h3>
+          <form method="post" action="{{ url_for('dashboard') }}">
+            <input type="hidden" name="action" value="discount">
+            <div class="form-grid">
+              <div class="full">
+                <label class="form-label">الموظف</label>
+                <select class="custom-input" name="employee_id" required>
+                  <option value="">اختر الموظف</option>
+                  {% for employee in employees %}
+                    <option value="{{ employee.id }}">{{ employee.full_name }} - {{ employee.role }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label">تاريخ الخصم</label>
+                <input type="date" class="custom-input" name="date" value="{{ selected_month }}-01">
+              </div>
+              <div>
+                <label class="form-label">قيمة الخصم (دينار ليبي)</label>
+                <input type="number" step="0.01" class="custom-input" name="amount" value="0" required>
+              </div>
+              <div class="full">
+                <label class="form-label">سبب الخصم</label>
+                <textarea class="custom-input custom-textarea" name="reason" rows="3" placeholder="مثال: غياب - تأخير - سند - خصم آخر"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="main-btn mt-3">إضافة خصم</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel mt-4">
+      <h3>آخر الحضور</h3>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>الوظيفة</th>
+              <th>التاريخ</th>
+              <th>الحالة</th>
+              <th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if attendance %}
+              {% for item in attendance %}
+              <tr>
+                <td>{{ item.full_name }}</td>
+                <td>{{ item.role }}</td>
+                <td>{{ item.date }}</td>
+                <td>
+                  {% if item.status == 'left' %}
+                    <span class="status-badge status-leave">منصرف</span>
+                  {% elif item.status == 'present' %}
+                    <span class="status-badge status-active">حاضر</span>
+                  {% elif item.status == 'late' %}
+                    <span class="status-badge status-inactive">متأخر</span>
+                  {% else %}
+                    <span class="status-badge status-inactive">غائب</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.check_in_time or '—' }} / {{ item.check_out_time or '—' }}<br>{{ item.notes or '—' }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="5" class="text-center text-muted">لا توجد سجلات حضور.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel mt-4">
+      <h3>آخر طلبات الإجازة</h3>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>الوظيفة</th>
+              <th>من</th>
+              <th>إلى</th>
+              <th>الأيام</th>
+              <th>السبب</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if leaves %}
+              {% for item in leaves %}
+              <tr>
+                <td>{{ item.full_name }}</td>
+                <td>{{ item.role }}</td>
+                <td>{{ item.start_date }}</td>
+                <td>{{ item.end_date }}</td>
+                <td>{{ item.days }}</td>
+                <td>{{ item.reason or '—' }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="6" class="text-center text-muted">لا توجد طلبات إجازة.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel mt-4">
+      <div class="section-header">
+        <h3>التقرير الشهري</h3>
+        <form method="post" action="{{ url_for('report_pdf') }}" class="inline-form">
+          <input type="hidden" name="month" value="{{ selected_month }}">
+          <button type="submit" class="small-btn">تصدير PDF</button>
+        </form>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>الوظيفة</th>
+              <th>الحالة</th>
+              <th>الراتب</th>
+              <th>الزيادات</th>
+              <th>الخصومات</th>
+              <th>حضور</th>
+              <th>غياب</th>
+              <th>تأخر</th>
+              <th>إجازات</th>
+              <th>الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if report %}
+              {% for row in report %}
+              <tr>
+                <td>{{ row.full_name }}</td>
+                <td>{{ row.role }}</td>
+                <td>
+                  {% if row.status == 'active' %}
+                    <span class="status-badge status-active">مداوم</span>
+                  {% elif row.status == 'inactive' %}
+                    <span class="status-badge status-inactive">متوقف</span>
+                  {% else %}
+                    <span class="status-badge status-leave">في إجازة</span>
+                  {% endif %}
+                </td>
+                <td>{{ '%.2f'|format(row.base_salary) }} د.ل</td>
+                <td>{{ '%.2f'|format(row.adjustment_total) }} د.ل</td>
+                <td>{{ '%.2f'|format(row.discount_total) }} د.ل</td>
+                <td>{{ row.present_days }}</td>
+                <td>{{ row.absent_days }}</td>
+                <td>{{ row.late_days }}</td>
+                <td>{{ row.leave_days }}</td>
+                <td>{{ '%.2f'|format(row.total_salary) }} د.ل</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="11" class="text-center text-muted">لا توجد بيانات لهذا الشهر.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('employeeForm');
+    const actionField = document.getElementById('employeeAction');
+    const employeeIdField = document.getElementById('employeeId');
+    const submitBtn = document.getElementById('employeeSubmit');
+    const cancelBtn = document.getElementById('cancelEdit');
+
+    document.querySelectorAll('.edit-employee').forEach((button) => {
+      button.addEventListener('click', function () {
+        actionField.value = 'update_employee';
+        employeeIdField.value = this.dataset.id;
+
+        form.querySelector('[name="full_name"]').value = this.dataset.full_name;
+        form.querySelector('[name="role"]').value = this.dataset.role;
+        form.querySelector('[name="phone"]').value = this.dataset.phone;
+        form.querySelector('[name="base_salary"]').value = this.dataset.base_salary;
+        form.querySelector('[name="work_hours"]').value = this.dataset.work_hours;
+        form.querySelector('[name="hire_date"]').value = this.dataset.hire_date;
+        form.querySelector('[name="check_in_time"]').value = this.dataset.check_in_time || '08:00';
+        form.querySelector('[name="check_out_time"]').value = this.dataset.check_out_time || '17:00';
+        form.querySelector('[name="status"]').value = this.dataset.status || 'active';
+        form.querySelector('[name="employment_type"]').value = this.dataset.employment_type || 'full_time';
+        form.querySelector('[name="notes"]').value = this.dataset.notes || '';
+
+        submitBtn.textContent = 'حفظ التعديل';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    cancelBtn.addEventListener('click', function () {
+      actionField.value = 'add_employee';
+      employeeIdField.value = '';
+      form.reset();
+      submitBtn.textContent = 'إضافة موظف';
+    });
+
+    const salaryChartData = JSON.parse(document.getElementById('salaryChartData').textContent);
+    const employeeNames = salaryChartData.labels;
+    const totalSalaryValues = salaryChartData.values;
+    const salaryCanvas = document.getElementById('salaryChart');
+    const salaryCtx = salaryCanvas.getContext('2d');
+    const salaryGradient = salaryCtx.createLinearGradient(0, 0, 0, 260);
+    salaryGradient.addColorStop(0, '#d7b58a');
+    salaryGradient.addColorStop(1, '#8b5e3c');
+
+    new Chart(salaryCanvas, {
+      type: 'bar',
+      data: {
+        labels: employeeNames,
+        datasets: [{
+          label: 'إجمالي الرواتب',
+          data: totalSalaryValues,
+          backgroundColor: salaryGradient,
+          borderRadius: 10,
+          borderSkipped: false,
+          borderWidth: 1,
+          borderColor: 'rgba(255,255,255,0.15)'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(255,255,255,0.08)' },
+            ticks: { callback: (value) => value + ' د.ل', color: '#dac7ae' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#f7f1e8' }
+          }
+        }
+      }
+    });
+
+    const attendanceChartData = JSON.parse(document.getElementById('attendanceChartData').textContent);
+    new Chart(document.getElementById('attendanceChart'), {
+      type: 'doughnut',
+      data: {
+        labels: attendanceChartData.labels,
+        datasets: [{
+          data: attendanceChartData.values,
+          backgroundColor: ['#6ea86b', '#c5654b', '#d8a968'],
+          borderColor: '#1b140f',
+          borderWidth: 3,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#f7f1e8',
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

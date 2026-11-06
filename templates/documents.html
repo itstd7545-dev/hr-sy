@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}المستندات | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">المستندات</p>
+        <h2>متابعة الاستيفاء</h2>
+      </div>
+      <div class="nav-actions">
+        <a href="{{ url_for('dashboard') }}" class="main-btn">العودة للوحة التحكم</a>
+      </div>
+    </div>
+
+    <div class="panel luxury-panel">
+      <div class="section-header">
+        <h3>📄 حالة المستندات</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>الوظيفة</th>
+              <th>نسبة الاكتمال</th>
+              <th>المستندات الناقصة</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if summary %}
+              {% for row in summary %}
+              <tr>
+                <td>{{ row.full_name }}</td>
+                <td>{{ row.role }}</td>
+                <td>{{ row.completion_percent or 0 }}%</td>
+                <td>{{ row.missing_documents or 'لا توجد مستندات ناقصة' }}</td>
+                <td>
+                  {% if (row.completion_percent or 0) >= 100 %}
+                    <span class="status-badge status-active">مكتمل</span>
+                  {% elif (row.completion_percent or 0) >= 60 %}
+                    <span class="status-badge status-leave">قيد المراجعة</span>
+                  {% else %}
+                    <span class="status-badge status-inactive">ناقص</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted">لا توجد بيانات للمستندات بعد.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

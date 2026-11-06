@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}التقارير | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">التقارير</p>
+        <h2>تقارير HR</h2>
+      </div>
+      <div class="nav-actions">
+        <a href="{{ url_for('dashboard') }}" class="main-btn">العودة للوحة التحكم</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-header">
+        <h3>تصفية التقرير</h3>
+      </div>
+      <form method="get" action="{{ url_for('reports') }}" class="employee-search-form modern-search-form">
+        <div class="search-field compact">
+          <span>◫</span>
+          <input type="month" class="custom-input" name="month" value="{{ selected_month }}">
+        </div>
+        <select class="custom-input" name="employee_id">
+          <option value="">كل الموظفين</option>
+          {% for employee in employees %}
+            <option value="{{ employee.id }}" {% if selected_employee and selected_employee|string == employee.id|string %}selected{% endif %}>{{ employee.full_name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="small-btn">تطبيق الفلتر</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="section-header">
+        <h3>ملخص تقرير {{ selected_month }}</h3>
+        <form method="post" action="{{ url_for('report_pdf') }}" class="inline-form">
+          <input type="hidden" name="month" value="{{ selected_month }}">
+          {% if selected_employee %}
+            <input type="hidden" name="employee_id" value="{{ selected_employee }}">
+          {% endif %}
+          <button type="submit" class="small-btn">تصدير PDF</button>
+        </form>
+      </div>
+
+      <div class="alert-stack">
+        {% if alerts %}
+          {% for alert in alerts[:3] %}
+            <div class="alert-card alert-{{ alert.type }}">
+              <span class="alert-tag">{{ alert.title }}</span>
+              <p>{{ alert.message }}</p>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="alert-card alert-safe">
+            <span class="alert-tag">مستوى ممتاز</span>
+            <p>لا توجد تنبيهات لهذا التقرير.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>الوظيفة</th>
+              <th>الحالة</th>
+              <th>الراتب</th>
+              <th>الزيادات</th>
+              <th>حضور</th>
+              <th>غياب</th>
+              <th>تأخر</th>
+              <th>إجازة</th>
+              <th>الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if report %}
+              {% for row in report %}
+              <tr>
+                <td>{{ row.full_name }}</td>
+                <td>{{ row.role }}</td>
+                <td>
+                  {% if row.status == 'active' %}
+                    <span class="status-badge status-active">مداوم</span>
+                  {% elif row.status == 'inactive' %}
+                    <span class="status-badge status-inactive">متوقف</span>
+                  {% else %}
+                    <span class="status-badge status-leave">في إجازة</span>
+                  {% endif %}
+                </td>
+                <td>{{ '%.2f'|format(row.base_salary) }} د.ل</td>
+                <td>{{ '%.2f'|format(row.adjustment_total) }} د.ل</td>
+                <td>{{ row.present_days }}</td>
+                <td>{{ row.absent_days }}</td>
+                <td>{{ row.late_days }}</td>
+                <td>{{ row.leave_days }}</td>
+                <td>{{ '%.2f'|format(row.total_salary) }} د.ل</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="10" class="text-center text-muted">لا توجد بيانات لهذا الشهر.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

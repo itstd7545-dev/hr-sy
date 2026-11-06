@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}صرف الرواتب | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">المالية</p>
+        <h2>لوحة الرواتب والمالية</h2>
+      </div>
+      <div class="nav-actions">
+        <form method="get" action="{{ url_for('payroll') }}" class="toolbar-form">
+          <label class="toolbar-label">الشهر</label>
+          <input type="month" class="custom-input toolbar-input" name="month" value="{{ selected_month }}">
+          <button type="submit" class="main-btn">تصفية</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-card green">
+        <div class="label">إجمالي الرواتب</div>
+        <div class="value">{{ '%.2f'|format(analytics.total_net) }} د.ل</div>
+      </div>
+      <div class="summary-card purple">
+        <div class="label">الراتب الأساسي</div>
+        <div class="value">{{ '%.2f'|format(analytics.total_basic) }} د.ل</div>
+      </div>
+      <div class="summary-card amber">
+        <div class="label">الإضافي</div>
+        <div class="value">{{ '%.2f'|format(analytics.total_overtime) }} د.ل</div>
+      </div>
+      <div class="summary-card red">
+        <div class="label">الخصومات</div>
+        <div class="value">{{ '%.2f'|format(analytics.total_deductions) }} د.ل</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">الموظفين المسجلين</span>
+        <strong>{{ items|length }}</strong>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">متوسط صافي الراتب</span>
+        <strong>{{ '%.2f'|format(analytics.average_net) }} د.ل</strong>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">المدفوع فعليًا</span>
+        <strong>{{ '%.2f'|format(analytics.total_paid) }} د.ل</strong>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">البيانات المحدثة</span>
+        <strong>{{ analytics.employees_with_data }}</strong>
+      </div>
+    </div>
+
+    <div class="chart-grid mt-4">
+      <div class="panel chart-panel luxury-panel">
+        <div class="section-header">
+          <h3>مؤشرات الرواتب</h3>
+        </div>
+        <canvas id="payrollDistributionChart"></canvas>
+      </div>
+      <div class="panel chart-panel luxury-panel">
+        <div class="section-header">
+          <h3>توزيع صافي الراتب</h3>
+        </div>
+        <canvas id="salaryBreakdownChart"></canvas>
+      </div>
+    </div>
+
+    <div class="panel mt-4">
+      <div class="section-header">
+        <h3>جدول الرواتب</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>الوظيفة</th>
+              <th>الراتب الأساسي</th>
+              <th>صافي الراتب</th>
+              <th>الحالة</th>
+              <th>تاريخ الدفع</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if items %}
+              {% for item in items %}
+              <tr>
+                <td>{{ item.employee.full_name }}</td>
+                <td>{{ item.employee.role }}</td>
+                <td>{{ '%.2f'|format(item.employee.base_salary or 0) }} د.ل</td>
+                <td>{{ '%.2f'|format(item.amount) }} د.ل</td>
+                <td>
+                  {% if item.paid %}
+                    <span class="status-badge status-active">مدفوع</span>
+                  {% else %}
+                    <span class="status-badge status-inactive">قيد الدفع</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% set current_payout = payouts | selectattr('employee_id', 'equalto', item.employee.id) | list %}
+                  {% if current_payout and current_payout[0].paid_at %}
+                    {{ current_payout[0].paid_at }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+                <td class="action-links">
+                  {% if not item.paid %}
+                  <form method="post" action="{{ url_for('payroll') }}">
+                    <input type="hidden" name="employee_id" value="{{ item.employee.id }}">
+                    <input type="hidden" name="month" value="{{ selected_month }}">
+                    <button type="submit" class="small-btn">صرف الآن</button>
+                  </form>
+                  {% else %}
+                  <span class="text-muted">تم الدفع</span>
+                  {% endif %}
+                  <a href="{{ url_for('payslip', employee_id=item.employee.id, month=selected_month) }}" class="small-btn secondary-btn">تفاصيل</a>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="7" class="text-center text-muted">لا توجد بيانات للرواتب في هذا الشهر.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const payrollChartData = {{ payroll_chart_data | tojson }};
+  const salaryDistribution = {{ salary_distribution | tojson }};
+
+  if (document.getElementById('payrollDistributionChart')) {
+    new Chart(document.getElementById('payrollDistributionChart'), {
+      type: 'doughnut',
+      data: {
+        labels: payrollChartData.labels,
+        datasets: [{
+          data: payrollChartData.datasets[0].data,
+          backgroundColor: payrollChartData.datasets[0].backgroundColor,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#f7f1e8' } }
+        }
+      }
+    });
+  }
+
+  if (document.getElementById('salaryBreakdownChart')) {
+    new Chart(document.getElementById('salaryBreakdownChart'), {
+      type: 'bar',
+      data: {
+        labels: salaryDistribution.labels,
+        datasets: [{
+          label: 'صافي الراتب',
+          data: salaryDistribution.values,
+          backgroundColor: '#d7b58a',
+          borderRadius: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { ticks: { color: '#dac7ae' }, grid: { display: false } },
+          y: { ticks: { color: '#dac7ae' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

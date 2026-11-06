@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR System | Premium Workforce Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="landing-body">
+    <div class="landing-shell">
+        <nav class="landing-nav">
+            <div class="landing-brand">
+                <span class="brand-mark landing-mark">HR</span>
+                <div>
+                    <strong>HR System</strong>
+                    <small>Workforce Suite</small>
+                </div>
+            </div>
+
+            <div class="landing-links">
+                <a href="#features">الميزات</a>
+                <a href="#solutions">الحلول</a>
+                <a href="#insights">التقارير</a>
+                <a href="#contact">تواصل</a>
+            </div>
+
+            <div class="landing-actions">
+                <a href="{{ url_for('login') }}" class="btn btn-ghost">تسجيل الدخول</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">ابدأ الآن</a>
+            </div>
+        </nav>
+
+        <header class="landing-hero">
+            <div class="hero-content">
+                <span class="hero-pill">منصة الموارد البشرية المتقدمة</span>
+                <h1>إدارة موظفينك بذكاء، سرعة، وراحة.</h1>
+                <p>
+                    نظام HR متكامل لتحليل الحضور، متابعة الرواتب، الإجازات، التوظيف، ومتابعة الموظفين
+                    من لوحة واحدة بإدارة احترافية وواجهة premium عصريّة.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-large">إنشاء حساب</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline btn-large">تسجيل الدخول</a>
+                </div>
+
+                <div class="hero-metrics">
+                    <div>
+                        <strong>96%</strong>
+                        <span>معدل الالتزام</span>
+                    </div>
+                    <div>
+                        <strong>12k</strong>
+                        <span>بيانات الموظفين</span>
+                    </div>
+                    <div>
+                        <strong>24/7</strong>
+                        <span>متابعة مباشرة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="mini-panel panel-top">
+                    <span class="mini-label">إجمالي الرواتب</span>
+                    <strong>42,300 د.ل</strong>
+                    <small>+12.4% مقارنة بالشهر الماضي</small>
+                </div>
+
+                <div class="glass-panel main-preview">
+                    <div class="panel-header-row">
+                        <span>لوحة الأداء</span>
+                        <span class="live-badge"><i class="fa-solid fa-circle"></i> Live</span>
+                    </div>
+
+                    <div class="stat-stack">
+                        <div class="stat-box">
+                            <span>الموظفين</span>
+                            <strong>142</strong>
+                        </div>
+                        <div class="stat-box accent-box">
+                            <span>الحضور</span>
+                            <strong>94%</strong>
+                        </div>
+                    </div>
+
+                    <div class="chart-bars">
+                        <span style="height: 32%"></span>
+                        <span style="height: 55%"></span>
+                        <span style="height: 68%"></span>
+                        <span style="height: 45%"></span>
+                        <span style="height: 88%"></span>
+                        <span style="height: 72%"></span>
+                        <span style="height: 96%"></span>
+                    </div>
+                </div>
+
+                <div class="mini-panel panel-bottom">
+                    <span class="mini-label">التنبيهات</span>
+                    <strong>4 حالات تحتاج متابعة</strong>
+                    <small>إجازات، تأخر، ودفع رواتب</small>
+                </div>
+            </div>
+        </header>
+
+        <main class="landing-sections">
+            <section id="features" class="feature-section">
+                <div class="section-heading">
+                    <span>المميزات الأساسية</span>
+                    <h2>كل ما تحتاجه لإدارة القوى العاملة</h2>
+                </div>
+
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-user-check"></i></div>
+                        <h3>متابعة الحضور</h3>
+                        <p>تتبع وقت الحضور والغياب والتأخر عبر تقارير دقيقة ومباشرة.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                        <h3>إدارة الرواتب</h3>
+                        <p>حساب الرواتب، الزيادات، الخصومات، ومتابعة صرف الرواتب بسهولة.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-umbrella-beach"></i></div>
+                        <h3>إدارة الإجازات</h3>
+                        <p>مراجعة طلبات الإجازة والقبول أو الرفض بطريقة منظمة وشفافة.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-icon"><i class="fa-solid fa-people-group"></i></div>
+                        <h3>التوظيف</h3>
+                        <p>إدارة التقدم للمتقدمين وتخزين المراحل ومرحلة التوظيف بالكامل.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section id="solutions" class="solution-section">
+                <div class="section-heading left">
+                    <span>الإدارة التنفيذية</span>
+                    <h2>منظومة متكاملة للقرارات والعمليات</h2>
+                </div>
+
+                <div class="solution-grid">
+                    <div class="solution-card big">
+                        <div class="solution-head">
+                            <span class="mini-tag">تقارير ذكية</span>
+                            <strong>لوحة معلومات دقيقة</strong>
+                        </div>
+                        <p>عرض مؤشرات الموظفين، الأداء، التزامهم، ومعدلات الرواتب في تقارير قابلة للتصدير.</p>
+                    </div>
+
+                    <div class="solution-card">
+                        <div class="solution-head">
+                            <span class="mini-tag warm">إشعارات</span>
+                            <strong>تنبيهات فورية</strong>
+                        </div>
+                        <p>إشعارات تلقائية عند الغياب، التأخير، أو الطلبات العاجلة.</p>
+                    </div>
+
+                    <div class="solution-card">
+                        <div class="solution-head">
+                            <span class="mini-tag dark">أمان</span>
+                            <strong>صلاحيات متعددة</strong>
+                        </div>
+                        <p>توزيع الصلاحيات بين المدير والموظف والقسم الخاص بكل جهة.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="insights" class="insight-section">
+                <div class="insight-card">
+                    <div>
+                        <span class="mini-tag">مؤشرات الأداء</span>
+                        <h3>التحليلات في لمحة واحدة</h3>
+                    </div>
+
+                    <div class="insight-bars">
+                        <div><span>الحضور</span><i style="width: 94%"></i></div>
+                        <div><span>الالتزام</span><i style="width: 88%"></i></div>
+                        <div><span>الرواتب</span><i style="width: 82%"></i></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer id="contact" class="landing-footer">
+            <div>
+                <strong>HR System</strong>
+                <p>منصة إدارة الموارد البشرية الاحترافية.</p>
+            </div>
+            <div class="footer-actions">
+                <a href="{{ url_for('login') }}" class="btn btn-ghost">الدخول</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">ابدأ الآن</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

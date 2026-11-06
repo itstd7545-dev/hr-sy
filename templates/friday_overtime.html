@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}إضافي الجمعة | Rahiq Pharmacy{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar"><div><p class="eyebrow">المالية</p><h2>إضافي الجمعة</h2></div></div>
+    <div class="panel mt-4">
+      <div class="section-header"><h3>تسجيل إضافي الجمعة</h3></div>
+      <form method="post" action="{{ url_for('friday_overtime') }}" class="row g-3">
+        <input type="hidden" name="action" value="create_friday">
+        <div class="col-md-4"><label class="form-label">الموظف</label><select class="custom-input" name="employee_id" required>{% for employee in employees %}<option value="{{ employee.id }}">{{ employee.full_name }}</option>{% endfor %}</select></div>
+        <div class="col-md-2"><label class="form-label">تاريخ الجمعة</label><input type="date" class="custom-input" name="friday_date" required></div>
+        <div class="col-md-2"><label class="form-label">من</label><input type="time" class="custom-input" name="start_time" required></div>
+        <div class="col-md-2"><label class="form-label">إلى</label><input type="time" class="custom-input" name="end_time" required></div>
+        <div class="col-md-2"><button type="submit" class="main-btn">حفظ</button></div>
+      </form>
+    </div>
+
+    <div class="panel mt-4">
+      <div class="section-header"><h3>سجل إضافي الجمعة</h3></div>
+      <table class="table mb-0"><thead><tr><th>الموظف</th><th>التاريخ</th><th>الوقت</th><th>الساعات</th><th>الحالة</th><th>إجراء</th></tr></thead>
+      <tbody>
+      {% for item in requests %}
+      <tr><td>{{ item.full_name }}</td><td>{{ item.friday_date }}</td><td>{{ item.start_time }} - {{ item.end_time }}</td><td>{{ item.total_hours }}</td><td>{{ item.status }}</td><td>{% if item.status == 'pending' %}<div class="action-links"><form method="post" action="{{ url_for('friday_overtime') }}"><input type="hidden" name="action" value="approve"><input type="hidden" name="record_id" value="{{ item.id }}"><button class="small-btn" type="submit">اعتماد</button></form><form method="post" action="{{ url_for('friday_overtime') }}"><input type="hidden" name="action" value="reject"><input type="hidden" name="record_id" value="{{ item.id }}"><button class="small-btn secondary-btn" type="submit">رفض</button></form></div>{% elif item.status == 'approved' %}<span class="text-success">معتمد</span>{% elif item.status == 'rejected' %}<span class="text-danger">مرفوض</span>{% else %}<span class="text-muted">{{ item.status }}</span>{% endif %}</td></tr>
+      {% else %}<tr><td colspan="6" class="text-center text-muted">لا توجد سجلات.</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+  </div>
+</div>
+{% endblock %}

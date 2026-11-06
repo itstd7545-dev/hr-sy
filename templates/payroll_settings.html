@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}إعدادات الرواتب | Rahiq Pharmacy{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">المالية</p>
+        <h2>إعدادات الرواتب</h2>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-card green">
+        <div class="label">عدد الموظفين</div>
+        <div class="value">{{ settings|length }}</div>
+      </div>
+      <div class="summary-card purple">
+        <div class="label">متوسط الراتب</div>
+        <div class="value">{{ '%.2f'|format((settings | map(attribute='salary_settings.basic_salary') | sum) / (settings|length or 1)) }} د.ل</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-header">
+        <h3>تحديث معدلات الرواتب</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped mb-0">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>الراتب الأساسي</th>
+              <th>ساعات اليوم</th>
+              <th>بدء العمل</th>
+              <th>نهاية العمل</th>
+              <th>قيمة الساعة</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in settings %}
+            <tr>
+              <td>{{ item.employee.full_name }}</td>
+              <td>
+                <form method="post" action="{{ url_for('payroll_settings') }}">
+                  <input type="hidden" name="employee_id" value="{{ item.employee.id }}">
+                  <input type="number" step="0.01" class="custom-input" name="basic_salary" value="{{ item.salary_settings.basic_salary or 0 }}">
+              </td>
+              <td><input type="number" step="0.5" class="custom-input" name="work_hours_per_day" value="{{ item.salary_settings.work_hours_per_day or 8 }}"></td>
+              <td><input type="time" class="custom-input" name="start_time" value="{{ item.salary_settings.start_time or '08:00' }}"></td>
+              <td><input type="time" class="custom-input" name="end_time" value="{{ item.salary_settings.end_time or '17:00' }}"></td>
+              <td><input type="number" step="0.01" class="custom-input" name="regular_hour_value" value="{{ item.salary_settings.regular_hour_value or 0 }}"></td>
+              <td><button type="submit" class="small-btn">حفظ</button></form></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

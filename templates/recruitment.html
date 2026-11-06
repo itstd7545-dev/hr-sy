@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}التوظيف | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">التوظيف</p>
+        <h2>إدارة التوظيف</h2>
+      </div>
+      <div class="nav-actions">
+        <a href="{{ url_for('dashboard') }}" class="main-btn"><i class="fa-solid fa-arrow-right-to-bracket"></i> العودة للوحة التحكم</a>
+      </div>
+    </div>
+
+    <div class="panel luxury-panel">
+      <div class="section-header">
+        <h3>إنشاء طلب توظيف</h3>
+      </div>
+      <form method="post" action="{{ url_for('recruitment') }}">
+        <input type="hidden" name="action" value="create_request">
+        <div class="form-grid">
+          <div>
+            <label class="form-label">المسمى الوظيفي</label>
+            <input class="custom-input" type="text" name="position_title" required>
+          </div>
+          <div>
+            <label class="form-label">القسم / الإدارة</label>
+            <input class="custom-input" type="text" name="department">
+          </div>
+          <div>
+            <label class="form-label">المسؤول</label>
+            <input class="custom-input" type="text" name="manager">
+          </div>
+          <div>
+            <label class="form-label">العدد المطلوب</label>
+            <input class="custom-input" type="number" name="vacancies" value="1" min="1">
+          </div>
+          <div class="full">
+            <label class="form-label">المؤهلات والخبرات المطلوبة</label>
+            <textarea class="custom-input" name="requirements" rows="3"></textarea>
+          </div>
+          <div>
+            <label class="form-label">حالة الطلب</label>
+            <select class="custom-input" name="status">
+              <option value="new">طلب جديد</option>
+              <option value="review">قيد المراجعة</option>
+              <option value="selected">تم اختيار المرشح</option>
+            </select>
+          </div>
+        </div>
+        <div class="action-row mt-3">
+          <button type="submit" class="main-btn">حفظ الطلب</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="section-header">
+        <h3>طلبات التوظيف</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>المسمى</th>
+              <th>القسم</th>
+              <th>المسؤول</th>
+              <th>العدد</th>
+              <th>الحالة</th>
+              <th>تاريخ الإنشاء</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if requests %}
+              {% for req in requests %}
+              <tr>
+                <td>{{ req.position_title }}</td>
+                <td>{{ req.department or '—' }}</td>
+                <td>{{ req.manager or '—' }}</td>
+                <td>{{ req.vacancies }}</td>
+                <td>{{ req.status }}</td>
+                <td>{{ req.created_at }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="6" class="text-center text-muted">لا توجد طلبات توظيف حتى الآن.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-header">
+        <h3>إضافة متقدم</h3>
+      </div>
+      <form method="post" action="{{ url_for('recruitment') }}">
+        <input type="hidden" name="action" value="add_candidate">
+        <div class="form-grid">
+          <div>
+            <label class="form-label">طلب التوظيف</label>
+            <select class="custom-input" name="recruitment_request_id" required>
+              {% for req in requests %}
+                <option value="{{ req.id }}">{{ req.position_title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">الاسم الكامل</label>
+            <input class="custom-input" type="text" name="full_name" required>
+          </div>
+          <div>
+            <label class="form-label">رقم الهاتف</label>
+            <input class="custom-input" type="text" name="phone">
+          </div>
+          <div>
+            <label class="form-label">البريد الإلكتروني</label>
+            <input class="custom-input" type="email" name="email">
+          </div>
+          <div>
+            <label class="form-label">المؤهل العلمي</label>
+            <input class="custom-input" type="text" name="education">
+          </div>
+          <div>
+            <label class="form-label">التخصص</label>
+            <input class="custom-input" type="text" name="specialization">
+          </div>
+          <div>
+            <label class="form-label">سنوات الخبرة</label>
+            <input class="custom-input" type="number" name="experience_years" value="0">
+          </div>
+          <div>
+            <label class="form-label">الوظيفة المتقدم إليها</label>
+            <input class="custom-input" type="text" name="target_position">
+          </div>
+          <div>
+            <label class="form-label">السيرة الذاتية</label>
+            <input class="custom-input" type="text" name="cv_document" placeholder="رابط أو اسم الملف">
+          </div>
+          <div>
+            <label class="form-label">مرحلة التوظيف</label>
+            <select class="custom-input" name="stage">
+              <option value="new">طلب جديد</option>
+              <option value="review">قيد المراجعة</option>
+              <option value="interview">تم تحديد مقابلة</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">تاريخ المقابلة</label>
+            <input class="custom-input" type="date" name="interview_date">
+          </div>
+          <div>
+            <label class="form-label">اسم مسؤول المقابلة</label>
+            <input class="custom-input" type="text" name="interviewer_name">
+          </div>
+          <div class="full">
+            <label class="form-label">التقييم وملاحظات المقابلة</label>
+            <textarea class="custom-input" name="evaluation" rows="3"></textarea>
+          </div>
+          <div class="full">
+            <label class="form-label">الملاحظات</label>
+            <textarea class="custom-input" name="notes" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="action-row mt-3">
+          <button type="submit" class="main-btn">إضافة المتقدم</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="section-header">
+        <h3>المتقدمون</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الوظيفة</th>
+              <th>البريد</th>
+              <th>المرحلة</th>
+              <th>التقييم</th>
+              <th>الإجراء</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req_id, candidates in candidates_by_request.items() %}
+              {% for cand in candidates %}
+              <tr>
+                <td>{{ cand.full_name }}</td>
+                <td>{{ cand.target_position }}</td>
+                <td>{{ cand.email or '—' }}</td>
+                <td>{{ cand.stage }}</td>
+                <td>{{ cand.evaluation or '—' }}</td>
+                <td>
+                  <form method="post" action="{{ url_for('recruitment') }}" style="display:inline;">
+                    <input type="hidden" name="action" value="hire_candidate">
+                    <input type="hidden" name="candidate_id" value="{{ cand.id }}">
+                    <button type="submit" class="small-btn">توظيف</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

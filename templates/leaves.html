@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}إدارة الإجازات | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">الإجازات</p>
+        <h2>إدارة الإجازات</h2>
+      </div>
+      <div class="nav-actions">
+        <a href="{{ url_for('dashboard') }}" class="main-btn">العودة للوحة التحكم</a>
+      </div>
+    </div>
+
+    <div class="panel luxury-panel">
+      <div class="section-header">
+        <h3>🏖️ تسجيل طلب إجازة جديد</h3>
+      </div>
+      <form method="post" action="{{ url_for('leaves') }}">
+        <div class="form-grid">
+          <div class="full">
+            <label class="form-label">الموظف</label>
+            <select class="custom-input" name="employee_id" required>
+              <option value="">اختر الموظف</option>
+              {% for employee in employees %}
+                <option value="{{ employee.id }}">{{ employee.full_name }} - {{ employee.role }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">تاريخ البداية</label>
+            <input type="date" class="custom-input" name="start_date" required>
+          </div>
+          <div>
+            <label class="form-label">تاريخ النهاية</label>
+            <input type="date" class="custom-input" name="end_date" required>
+          </div>
+          <div class="full">
+            <label class="form-label">سبب الإجازة</label>
+            <textarea class="custom-input custom-textarea" name="reason" rows="3" placeholder="أدخل سبب الإجازة"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="main-btn mt-3">إرسال طلب الإجازة</button>
+      </form>
+    </div>
+
+    <div class="panel mt-4 luxury-panel">
+      <div class="section-header">
+        <h3>📋 طلبات الإجازة</h3>
+        <form method="get" action="{{ url_for('leaves') }}" class="inline-form">
+          <select class="custom-input" name="status">
+            <option value="all" {% if selected_status == 'all' %}selected{% endif %}>كل الطلبات</option>
+            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>قيد المراجعة</option>
+            <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>موافق عليها</option>
+            <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>مرفوضة</option>
+          </select>
+          <button type="submit" class="small-btn">تطبيق</button>
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>الوظيفة</th>
+              <th>من</th>
+              <th>إلى</th>
+              <th>الأيام</th>
+              <th>السبب</th>
+              <th>الحالة</th>
+              {% if user_role in ['admin', 'manager'] %}
+                <th>الإجراء</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% if leaves %}
+              {% for item in leaves %}
+              <tr>
+                <td>{{ item.full_name }}</td>
+                <td>{{ item.role }}</td>
+                <td>{{ item.start_date }}</td>
+                <td>{{ item.end_date }}</td>
+                <td>{{ item.days }}</td>
+                <td>{{ item.reason or '—' }}</td>
+                <td>
+                  {% if item.status == 'approved' %}
+                    <span class="status-badge status-active">موافق</span>
+                  {% elif item.status == 'rejected' %}
+                    <span class="status-badge status-inactive">مرفوض</span>
+                  {% else %}
+                    <span class="status-badge status-leave">قيد المراجعة</span>
+                  {% endif %}
+                </td>
+                {% if user_role in ['admin', 'manager'] %}
+                <td>
+                  <form method="post" action="{{ url_for('leaves') }}" style="display:inline;">
+                    <input type="hidden" name="action" value="update_leave_status">
+                    <input type="hidden" name="leave_id" value="{{ item.id }}">
+                    <select class="custom-input" name="status" style="width:auto; display:inline-block;">
+                      <option value="pending" {% if item.status == 'pending' %}selected{% endif %}>قيد المراجعة</option>
+                      <option value="approved" {% if item.status == 'approved' %}selected{% endif %}>موافق</option>
+                      <option value="rejected" {% if item.status == 'rejected' %}selected{% endif %}>مرفوض</option>
+                    </select>
+                    <button type="submit" class="small-btn">تحديث</button>
+                  </form>
+                </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="8" class="text-center text-muted">لا توجد طلبات إجازة.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

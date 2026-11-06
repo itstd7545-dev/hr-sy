@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Maintenance Mode | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="panel text-center py-5">
+      <h2>وضع الصيانة</h2>
+      <p class="mt-3">النظام الآن في وضع الصيانة، وسيعود خلال وقت قصير.</p>
+      <a href="{{ url_for('login') }}" class="main-btn mt-3">العودة لتسجيل الدخول</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

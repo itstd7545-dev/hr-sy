@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}سجل الحالة | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar">
+      <h2>سجل تغييرات حالة الموظف</h2>
+      <div class="nav-actions">
+        <a href="{{ url_for('employees') }}" class="main-btn">العودة لقائمة الموظفين</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      {% if employee %}
+      <h3>{{ employee.full_name }} - {{ employee.role }}</h3>
+      {% endif %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>من حالة</th>
+              <th>إلى حالة</th>
+              <th>المسؤول</th>
+              <th>السبب</th>
+              <th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if history %}
+              {% for item in history %}
+              <tr>
+                <td>{{ item.changed_at }}</td>
+                <td>{{ item.old_status or '—' }}</td>
+                <td>{{ item.new_status }}</td>
+                <td>{{ item.changed_by }}</td>
+                <td>{{ item.reason or '—' }}</td>
+                <td>{{ item.notes or '—' }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">لا توجد تغييرات مسجلة حتى الآن.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

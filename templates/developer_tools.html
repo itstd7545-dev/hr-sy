@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Developer Tools | Rahiq Pharmacy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar">
+      <h2>Developer Tools</h2>
+      <div class="nav-actions">
+        <a href="{{ url_for('dashboard') }}" class="main-btn">العودة للوحة التحكم</a>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-card green">
+        <div class="label">Version</div>
+        <div class="value">{{ system_version }}</div>
+      </div>
+      <div class="summary-card purple">
+        <div class="label">Python</div>
+        <div class="value">{{ python_version }}</div>
+      </div>
+      <div class="summary-card blue">
+        <div class="label">Flask</div>
+        <div class="value">{{ flask_version }}</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>إعدادات النظام</h3>
+      <div class="form-grid">
+        <div>
+          <form method="post">
+            <input type="hidden" name="action" value="toggle_maintenance">
+            <label class="form-label">Maintenance Mode</label>
+            <select class="custom-input" name="maintenance_mode">
+              <option value="on" {% if maintenance_mode %}selected{% endif %}>مفعل</option>
+              <option value="off" {% if not maintenance_mode %}selected{% endif %}>غير مفعل</option>
+            </select>
+            <button type="submit" class="main-btn mt-2">تحديث وضع الصيانة</button>
+          </form>
+        </div>
+        <div>
+          <form method="post">
+            <input type="hidden" name="action" value="toggle_login">
+            <label class="form-label">Disable Login</label>
+            <select class="custom-input" name="login_disabled">
+              <option value="on" {% if login_disabled %}selected{% endif %}>مفعل</option>
+              <option value="off" {% if not login_disabled %}selected{% endif %}>غير مفعل</option>
+            </select>
+            <button type="submit" class="main-btn mt-2">تحديث قفل الدخول</button>
+          </form>
+        </div>
+        <div>
+          <form method="post">
+            <input type="hidden" name="action" value="update_version">
+            <label class="form-label">System Version</label>
+            <input type="text" class="custom-input" name="system_version" value="{{ system_version }}">
+            <button type="submit" class="main-btn mt-2">تحديث الإصدار</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>حالة قاعدة البيانات ورسائل الأخطاء</h3>
+      <div class="alert-stack">
+        <div class="alert-card {% if database_ok %}alert-safe{% else %}alert-danger{% endif %}">
+          <span class="alert-tag">Database Check</span>
+          <p>{% if database_ok %}تمت فحص قاعدة البيانات بنجاح. الاتصال يعمل بشكل طبيعي.{% else %}فشل الاتصال بقاعدة البيانات، يرجى التحقق من الإعدادات.{% endif %}</p>
+        </div>
+        <div class="alert-card alert-warning">
+          <span class="alert-tag">Last Error</span>
+          <p>{{ last_error }}</p>
+        </div>
+      </div>
+      <form method="post">
+        <input type="hidden" name="action" value="clear_error">
+        <button type="submit" class="small-btn">إعادة تعيين الرسائل</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}كشف الرواتب | Rahiq Pharmacy{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <div class="topbar luxury-topbar">
+      <div>
+        <p class="eyebrow">كشف راتب</p>
+        <h2>{{ employee.full_name }}</h2>
+      </div>
+      <div class="nav-actions">
+        <a href="{{ url_for('payroll') }}" class="small-btn">عودة إلى الرواتب</a>
+      </div>
+    </div>
+
+    <div class="summary-row mt-4">
+      <div class="summary-card green">
+        <div class="label">الراتب الأساسي</div>
+        <div class="value">{{ '%.2f'|format(payroll_record.basic_salary or employee.base_salary or 0) }} د.ل</div>
+      </div>
+      <div class="summary-card purple">
+        <div class="label">الإضافي</div>
+        <div class="value">{{ '%.2f'|format((payroll_record.regular_overtime or 0) + (payroll_record.friday_overtime or 0) + (payroll_record.holiday_overtime or 0)) }} د.ل</div>
+      </div>
+      <div class="summary-card red">
+        <div class="label">الخصومات</div>
+        <div class="value">{{ '%.2f'|format(payroll_record.late_deduction or 0) }} د.ل</div>
+      </div>
+      <div class="summary-card amber">
+        <div class="label">صافي الراتب</div>
+        <div class="value">{{ '%.2f'|format(payroll_record.net_salary or 0) }} د.ل</div>
+      </div>
+    </div>
+
+    <div class="panel mt-4">
+      <div class="section-header"><h3>تفاصيل الراتب - {{ month }}</h3></div>
+      <div class="row">
+        <div class="col-md-6">
+          <ul class="list-group list-group-flush premium-list">
+            <li class="list-group-item"><strong>الموظف:</strong> {{ employee.full_name }}</li>
+            <li class="list-group-item"><strong>الوظيفة:</strong> {{ employee.role }}</li>
+            <li class="list-group-item"><strong>القسم:</strong> {{ employee.department or 'غير محدد' }}</li>
+            <li class="list-group-item"><strong>الحالة:</strong> {{ payroll_record.status or 'draft' }}</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <ul class="list-group list-group-flush premium-list">
+            <li class="list-group-item"><strong>التأخر:</strong> {{ late_summary.late_minutes or 0 }} دقيقة</li>
+            <li class="list-group-item"><strong>إضافي عادي:</strong> {{ '%.2f'|format(payroll_record.regular_overtime or 0) }} د.ل</li>
+            <li class="list-group-item"><strong>إضافي جمعة:</strong> {{ '%.2f'|format(payroll_record.friday_overtime or 0) }} د.ل</li>
+            <li class="list-group-item"><strong>إضافي عطلة:</strong> {{ '%.2f'|format(payroll_record.holiday_overtime or 0) }} د.ل</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
