@@ -689,13 +689,23 @@ def save_salary_settings(employee_id, payload, user_name="system"):
 
 
 def get_connection():
-    if os.getenv("DATABASE_URL"):
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
         try:
             import psycopg2
             from psycopg2.extras import RealDictCursor
 
-            conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+            conn = psycopg2.connect(database_url)
             conn.cursor_factory = RealDictCursor
+            return conn
+        except Exception:
+            pass
+
+        try:
+            import psycopg
+            from psycopg.rows import dict_row
+
+            conn = psycopg.connect(database_url)
             return conn
         except Exception:
             pass

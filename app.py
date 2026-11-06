@@ -1,3 +1,4 @@
+import os
 import platform
 import sqlite3
 from datetime import datetime
@@ -70,8 +71,8 @@ from database import (
 )
 
 app = Flask(__name__)
-app.secret_key = "hr-system-secret-key-2026"
-app.config["SYSTEM_VERSION"] = "1.0.0"
+app.secret_key = os.environ.get("SECRET_KEY", "hr-system-secret-key-2026")
+app.config["SYSTEM_VERSION"] = os.environ.get("SYSTEM_VERSION", "1.0.0")
 app.config["MAINTENANCE_MODE"] = False
 app.config["LOGIN_DISABLED"] = False
 app.config["LAST_ERROR"] = "No errors recorded."
@@ -1116,4 +1117,5 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(__import__("os").environ.get("PORT", "5007")))
+    debug_mode = os.environ.get("FLASK_DEBUG", "0").lower() in {"1", "true", "yes", "on"}
+    app.run(debug=debug_mode, host="0.0.0.0", port=int(os.environ.get("PORT", "5007")), use_reloader=debug_mode)
